@@ -1,11 +1,7 @@
 from fastapi import FastAPI
+from app.routers import healthcheck
+
 
 app = FastAPI()
 
-@app.get("/")
-def read_root():
-    return {"message": "FastAPI is running!"}
-
-@app.post("/api/chat")
-def chat_endpoint(query: dict):
-    return {"response": f"You said: {query['message']}"}
+app.include_router(healthcheck.router)
