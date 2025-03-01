@@ -26,8 +26,8 @@ export function ChatPrompt() {
 
   return (
     <div className="fixed inset-x-0 bottom-0 w-full duration-300 ease-in-out animate-in peer-[[data-state=open]]:group-[]:lg:pl-[250px] peer-[[data-state=open]]:group-[]:xl:pl-[300px]">
-      <div className="md:mb-4 mx-auto lg:max-w-[calc(100%-18rem)]">
-        <div className="space-y-4 border-t bg-white p-2 shadow-lg sm:rounded-xl sm:border md:p-4">
+      <div className="md:mb-4 mx-auto max-w-3xl">
+        <div className="space-y-4 border-t bg-white p-2 shadow-lg md:rounded-xl sm:border md:p-4">
           <form
             ref={formRef}
             onSubmit={handleSubmit}

@@ -1,3 +1,5 @@
+'use client'
+
 // dependencies
 import { Bot } from 'lucide-react'
 
