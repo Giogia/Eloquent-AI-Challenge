@@ -23,6 +23,13 @@ async def chat_completion(prompt: ChatSessionPrompt) -> StreamingResponse:
         media_type='text/event-stream'
     )
 
+@router.get("/sessions")
+async def get_all_sessions():
+    
+    sessions = chat_service.get_all_sessions()
+
+    return sessions
+
 @router.get("/history/{session_id}")
 async def get_chat_history(session_id: str):
     

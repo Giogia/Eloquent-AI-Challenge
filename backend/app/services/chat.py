@@ -19,6 +19,7 @@ MODEL_CONFIG = {
 
 class Chat:
     def __init__(self):
+        self.conn_info = os.getenv("POSTGRES_URL")
         self.llm = ChatAnthropic(
             model_name=MODEL_CONFIG["name"],
             temperature=MODEL_CONFIG["temperature"],
@@ -35,9 +36,30 @@ class Chat:
         )
         self.index = self.pinecone.Index(os.getenv("PINECONE_INDEX_NAME"))
 
+    def get_all_sessions(self) -> list[dict[str, str]]:
+        with psycopg.connect(self.conn_info) as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("""
+                    SELECT DISTINCT ON (session_id) 
+                        session_id, 
+                        message 
+                    FROM chat_history 
+                    WHERE message->>'type' = 'human'
+                    ORDER BY session_id, id ASC
+                """)
+                rows = cursor.fetchall()
+        
+        sessions = [
+            {
+                "id": row[0], 
+                "title": row[1]["data"]["content"]
+            } for row in rows
+        ]
+
+        return sessions
+
     def get_message_history(self, session_id: str) -> PostgresChatMessageHistory:
-        conn_info = os.getenv("POSTGRES_URL")
-        sync_connection = psycopg.connect(conn_info)
+        sync_connection = psycopg.connect(self.conn_info)
 
         return PostgresChatMessageHistory(
             'chat_history',
