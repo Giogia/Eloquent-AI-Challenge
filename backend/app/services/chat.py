@@ -55,7 +55,6 @@ class Chat:
         return embedding[0].values
     
     def get_relevant_context(self, embedding: list, top_k: int = 3) -> str:
-            
         results = self.index.query(
             vector=embedding,
             top_k=top_k,

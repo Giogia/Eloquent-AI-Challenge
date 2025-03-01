@@ -8,30 +8,30 @@ import ReactMarkdown from 'react-markdown'
 import { cn } from '@/lib/utils'
 
 // types
-import { Actor, Message } from '@/types/Chat'
+import { Type, Message } from '@/types/Chat'
 
 export function ChatMessage ({ message }: { message: Message }) {
-  return (message.role === Actor.AI || message.role === Actor.Human) ?
+  return (message.type === Type.AI || message.type === Type.Human) ?
     (
       <div key={message.id}>
         <div
           className={cn(
             'group relative mb-4 items-start bg-white p-4 rounded-md',
-            message.role === Actor.Human ? 'bg-white' : 'bg-gray-50',
-            message.role === Actor.Human && 'flex-row-reverse',
+            message.type === Type.Human ? 'bg-white' : 'bg-gray-50',
+            message.type === Type.Human && 'flex-row-reverse',
             'flex'
           )}
         >
           <div
             className={cn(
               'flex size-10 shrink-0 select-none items-center justify-center rounded-full border',
-              message.role === Actor.Human
+              message.type === Type.Human
                 ? 'bg-background'
                 : 'bg-primary text-primary-foreground',
               `${message.error && 'text-red-600'}`
             )}
           >
-            {message.role === Actor.Human
+            {message.type === Type.Human
               ? <User />
               : <Bot color="white" />
             }
@@ -39,7 +39,7 @@ export function ChatMessage ({ message }: { message: Message }) {
           <div
             className={cn(
               'px-1 space-y-2 overflow-hidden',
-              message.role === Actor.Human ? 'mr-4' : 'ml-4',
+              message.type === Type.Human ? 'mr-4' : 'ml-4',
               Boolean(message.error) && 'text-red-600'
             )}
           >

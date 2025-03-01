@@ -1,7 +1,7 @@
 /**
  * Represents the possible actors in a chat conversation.
  */
-export enum Actor {
+export enum Type {
   /** Represents a human user in the conversation */
   Human = 'human',
   /** Represents an AI assistant in the conversation */
@@ -17,7 +17,7 @@ export interface Message {
   /** The text content of the message */
   content: string;
   /** The actor (human or AI) who sent the message */
-  role: Actor;
+  type: Type;
   /** Any error that occurred while processing the message */
   error: unknown;
 }

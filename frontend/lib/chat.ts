@@ -1,23 +1,23 @@
-// stores
-import { useChatStore } from '@/stores/chat'
 
 // lib
 import { messageId } from '@/lib/utils'
 import { handleMultiChunk, handleStreamEvent } from '@/lib/stream'
+
+// types
+import { Message } from '@/types/Chat'
 
 /**
  * Initiates a chat conversation with the AI using the provided prompt
  * @param prompt The user's input message to send to the AI
  * @throws {string} When the network response is not OK
  */
-export async function chat(prompt: string) {
-  const store = useChatStore.getState()
+export async function chat(sessionId:string, prompt: string) {
   
   const resp = await fetch('/api/chat/completion', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      sessionId: store.sessionId,
+      sessionId,
       content: prompt,
     }),
     credentials: 'include',
@@ -43,4 +43,17 @@ export async function chat(prompt: string) {
       handleMultiChunk(chunk, aiMessageId, accMessage)
     }
   }
+}
+
+/**
+ * Retrieves chat history for a given session
+ * @param sessionId The ID of the chat session to fetch history for
+ * @returns Promise containing an array of chat messages
+ * @throws {Error} When the fetch request fails
+ */
+export async function getHistory(sessionId: string): Promise<{ messages: Message[] }> {
+  const resp = await fetch(`/api/chat/history/${sessionId}`)
+  const history = await resp.json()
+
+  return history
 }

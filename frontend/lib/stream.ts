@@ -2,7 +2,7 @@
 import { useChatStore } from '@/stores/chat'
 
 // types
-import { Actor } from '@/types/Chat'
+import { Type } from '@/types/Chat'
 
 /**
  * Handles stream events for chat messages
@@ -22,7 +22,7 @@ export function handleStreamEvent(
     store.addMessage({
       id: aiMessageId,
       content: '',
-      role: Actor.AI,
+      type: Type.AI,
       error: null,
     })
     break
