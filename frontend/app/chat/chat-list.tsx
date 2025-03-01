@@ -1,6 +1,6 @@
 'use client'
 
-// chat
+// components
 import { ChatMessage } from '@/app/chat/chat-message'
 
 // stores

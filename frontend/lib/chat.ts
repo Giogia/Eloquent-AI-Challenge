@@ -4,7 +4,7 @@ import { messageId } from '@/lib/utils'
 import { handleMultiChunk, handleStreamEvent } from '@/lib/stream'
 
 // types
-import { Message } from '@/types/Chat'
+import { History, Session } from '@/types/Chat'
 
 /**
  * Initiates a chat conversation with the AI using the provided prompt
@@ -51,9 +51,21 @@ export async function chat(sessionId:string, prompt: string) {
  * @returns Promise containing an array of chat messages
  * @throws {Error} When the fetch request fails
  */
-export async function getHistory(sessionId: string): Promise<{ messages: Message[] }> {
+export async function getHistory(sessionId: string): Promise<History> {
   const resp = await fetch(`/api/chat/history/${sessionId}`)
   const history = await resp.json()
 
   return history
+}
+
+/**
+ * Retrieves all available chat sessions
+ * @returns Promise containing an array of session IDs
+ * @throws {Error} When the fetch request fails
+ */
+export async function getSessions(): Promise<Session[]> {
+  const resp = await fetch('/api/chat/sessions')
+  const sessions = await resp.json()
+  
+  return sessions
 }

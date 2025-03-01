@@ -21,3 +21,21 @@ export interface Message {
   /** Any error that occurred while processing the message */
   error: unknown;
 }
+
+/**
+ * Represents the chat history containing an array of messages.
+ */
+export interface History {
+  /** Array of chat messages in chronological order */
+  messages: Message[];
+}
+
+/**
+ * Represents a chat session with identifying information.
+ */
+export interface Session {
+  /** Unique identifier for the session */
+  id: string;
+  /** Title or name of the chat session */
+  title: string;
+}
