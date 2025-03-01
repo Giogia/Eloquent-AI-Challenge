@@ -14,7 +14,10 @@ chat_service = Chat()
 
 @router.post("/completion")
 async def chat_completion(prompt: ChatSessionPrompt) -> StreamingResponse:
+
+    embedding = chat_service.generate_embedding(prompt.content)
+
     return StreamingResponse(
-        chat_service.stream_chat_response(prompt.sessionId, prompt.content),
+        chat_service.stream_chat_response(prompt.sessionId, prompt.content, embedding),
         media_type='text/event-stream'
     )

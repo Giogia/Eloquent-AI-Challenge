@@ -3,6 +3,7 @@ import json
 import psycopg
 
 from typing import AsyncGenerator, Dict, Any
+from pinecone import Pinecone
 
 from langchain_anthropic import ChatAnthropic
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
@@ -28,6 +29,11 @@ class Chat:
             MessagesPlaceholder(variable_name="history"),
             ("human", "{input}")
         ])
+        self.pinecone = Pinecone(
+            api_key=os.getenv("PINECONE_API_KEY"), 
+            environment=os.getenv("PINECONE_ENV")
+        )
+        self.index = self.pinecone.Index(os.getenv("PINECONE_INDEX_NAME"))
 
     def get_message_history(self, session_id: str) -> PostgresChatMessageHistory:
         conn_info = os.getenv("POSTGRES_URL")
@@ -38,11 +44,40 @@ class Chat:
             session_id,
             sync_connection=sync_connection
         )
+    
+    def generate_embedding(self, prompt: str) -> list:
+        embedding = self.pinecone.inference.embed(
+            model="llama-text-embed-v2",
+            inputs=[prompt],
+            parameters={ "input_type": "query" }
+        )
 
-    async def stream_chat_response(self, session_id: str, prompt: str) -> AsyncGenerator[str, None]:
+        return embedding[0].values
+    
+    def get_relevant_context(self, embedding: list, top_k: int = 3) -> str:
+            
+        results = self.index.query(
+            vector=embedding,
+            top_k=top_k,
+            include_values=False,
+            include_metadata=True,
+        )
+
+        context = "# RELEVANT KNOWLEDGE\n\n" + "\n".join([
+            f"Q: {match['metadata']['category']}\nA: {match['metadata']['text']}" 
+            for match in results['matches']
+        ]) + "\n\n# PROMPT\n\n"
+        
+        return context
+
+    async def stream_chat_response(self, session_id: str, prompt: str, embedding: list) -> AsyncGenerator[str, None]:
         history = self.get_message_history(session_id)
+        context = self.get_relevant_context(embedding)
+
+        prompt_with_context = context + prompt
+
         messages = self.prompt_template.format_messages(
-            input=prompt,
+            input=prompt_with_context,
             history=history.messages
         )
 
