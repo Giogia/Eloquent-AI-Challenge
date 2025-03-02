@@ -16,7 +16,7 @@ interface ChatState {
   /** Unique identifier for the chat session */
   sessionId: string
   /** Sets the session ID for the chat */
-  setSessionId: (sessionId: string) => void
+  setSessionId: (sessionId?: string) => void
   /** Array of chat messages */
   messages: Message[]
   /** Sets the messages array to a new value */
@@ -39,7 +39,7 @@ interface ChatState {
 
 export const useChatStore = create<ChatState>((set, get) => ({
   sessionId: uuid(),
-  setSessionId: (sessionId) => set({ sessionId }),
+  setSessionId: (sessionId = uuid()) => set({ sessionId }),
   messages: [],
   setMessages: (messages) => set({ messages }),
   addMessage: (message) => 
@@ -62,6 +62,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   setPrompt: (prompt) => set({ prompt }),
   sendMessage: async (content) => {
     const store = get()
+
     store.setCompletionLoading(true)
     store.addMessage({
       id: messageId(),
@@ -71,12 +72,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     })
     store.setPrompt('')
     
-    try {
-      await chat(store.sessionId, content)
-    } catch (error) {
-      console.error(error)
-    } finally {
-      store.setCompletionLoading(false)
-    }
+    await chat(store.sessionId, content)
+    store.setCompletionLoading(false)
   }
 }))

@@ -11,9 +11,6 @@ import { ChatList } from '@/app/chat/chat-list'
 import { ChatPrompt } from '@/app/chat/chat-prompt'
 import { EmptyScreen } from '@/app/chat/empty-screen'
 
-// dependencies
-import { v4 as uuid } from 'uuid'
-
 // lib
 import { getHistory } from '@/lib/chat'
 
@@ -41,7 +38,7 @@ export function Chat() {
         setSessionId(sessionId)
         setMessages(history.messages)
       } else {
-        setSessionId(uuid())
+        setSessionId()
         setMessages([])
       }
     }
