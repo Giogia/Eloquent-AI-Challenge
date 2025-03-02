@@ -4,14 +4,14 @@ from uuid import uuid4
 from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 
-from app.services import Chat
+from app.services import ChatService
 from app.schemas import Prompt, Session
 
 load_dotenv()
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
-chat_service = Chat()
+chat_service = ChatService()
 
 @router.post("/completion")
 async def chat_completion(prompt: Prompt) -> StreamingResponse:

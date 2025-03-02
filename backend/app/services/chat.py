@@ -18,7 +18,7 @@ MODEL_CONFIG = {
     "max_tokens": 1024
 }
 
-class Chat:
+class ChatService:
     def __init__(self):
         self.sessions = Sessions()
         self.llm = ChatAnthropic(
