@@ -19,21 +19,26 @@ async def chat_completion(prompt: ChatSessionPrompt) -> StreamingResponse:
     embedding = chat_service.generate_embedding(prompt.content)
 
     return StreamingResponse(
-        chat_service.stream_chat_response(prompt.sessionId, prompt.content, embedding),
+        chat_service.stream_chat_response(
+            prompt.sessionId, 
+            prompt.userId, 
+            prompt.content, 
+            embedding
+        ),
         media_type='text/event-stream'
     )
 
-@router.get("/sessions")
-async def get_all_sessions():
+@router.get("/sessions/{user_id}")
+async def get_sessions(user_id: str):
     
-    sessions = chat_service.get_all_sessions()
+    sessions = chat_service.sessions.get_sessions(user_id)
 
     return sessions
 
 @router.get("/history/{session_id}")
 async def get_chat_history(session_id: str):
     
-    history = chat_service.get_message_history(session_id)
+    history = chat_service.sessions.get_message_history(session_id)
 
     messages_with_ids = [
         {

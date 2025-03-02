@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
-from app.db.database import engine
+from app.db.connection import engine
 from app.db.models import Base
 from app.routers import healthcheck, chat
 

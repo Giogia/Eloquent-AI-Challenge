@@ -1,6 +1,5 @@
 import os
 import json
-import psycopg
 
 from typing import AsyncGenerator, Dict, Any
 from pinecone import Pinecone
@@ -8,6 +7,8 @@ from pinecone import Pinecone
 from langchain_anthropic import ChatAnthropic
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_postgres import PostgresChatMessageHistory
+
+from app.services.sessions import Sessions
 
 # Configuration
 SYSTEM_PROMPT = "You're an assistant. Bold key terms in your responses."
@@ -19,7 +20,7 @@ MODEL_CONFIG = {
 
 class Chat:
     def __init__(self):
-        self.conn_info = os.getenv("POSTGRES_URL")
+        self.sessions = Sessions()
         self.llm = ChatAnthropic(
             model_name=MODEL_CONFIG["name"],
             temperature=MODEL_CONFIG["temperature"],
@@ -36,38 +37,17 @@ class Chat:
         )
         self.index = self.pinecone.Index(os.getenv("PINECONE_INDEX_NAME"))
 
-    def get_all_sessions(self) -> list[dict[str, str]]:
-        with psycopg.connect(self.conn_info) as conn:
-            with conn.cursor() as cursor:
-                cursor.execute("""
-                    SELECT DISTINCT ON (session_id) 
-                        session_id, 
-                        message 
-                    FROM chat_history 
-                    WHERE message->>'type' = 'human'
-                    ORDER BY session_id, id ASC
-                """)
-                rows = cursor.fetchall()
-        
-        sessions = [
-            {
-                "id": row[0], 
-                "title": row[1]["data"]["content"]
-            } for row in rows
-        ]
-
-        return sessions
-
-    def get_message_history(self, session_id: str) -> PostgresChatMessageHistory:
-        sync_connection = psycopg.connect(self.conn_info)
-
-        return PostgresChatMessageHistory(
-            'chat_history',
-            session_id,
-            sync_connection=sync_connection
-        )
-    
     def generate_embedding(self, prompt: str) -> list:
+        """
+        Generate embeddings for the given prompt using Llama embedding model.
+        
+        Args:
+            prompt (str): User prompt to generate embeddings for
+            
+        Returns:
+            list: Vector embedding representation of the prompt
+        """
+
         embedding = self.pinecone.inference.embed(
             model="llama-text-embed-v2",
             inputs=[prompt],
@@ -77,6 +57,17 @@ class Chat:
         return embedding[0].values
     
     def get_relevant_context(self, embedding: list, top_k: int = 3) -> str:
+        """
+        Retrieve relevant context from the vector database based on the prompt embedding.
+        
+        Args:
+            embedding (list): Vector embedding of the user prompt
+            top_k (int, optional): Number of most relevant contexts to retrieve. Defaults to 3.
+            
+        Returns:
+            str: Formatted string containing the relevant contexts
+        """
+
         results = self.index.query(
             vector=embedding,
             top_k=top_k,
@@ -91,8 +82,31 @@ class Chat:
         
         return context
 
-    async def stream_chat_response(self, session_id: str, prompt: str, embedding: list) -> AsyncGenerator[str, None]:
-        history = self.get_message_history(session_id)
+    async def stream_chat_response(self, session_id: str, user_id:str, prompt: str, embedding: list) -> AsyncGenerator[str, None]:
+        """
+        Stream chat responses from the LLM back to the client.
+        
+        This method:
+        1. Creates a new session if it doesn't exist
+        2. Retrieves message history for the session
+        3. Gets relevant context based on the prompt embedding
+        4. Combines context with the prompt
+        5. Streams the LLM response back to the client
+        
+        Args:
+            session_id (str): Unique identifier for the chat session
+            user_id (str): Unique identifier for the user
+            prompt (str): User's input message
+            embedding (list): Vector embedding of the user prompt
+            
+        Yields:
+            str: JSON-formatted chunks of the LLM response
+        """
+
+        if not self.sessions.session_exists(session_id):
+            self.sessions.create_session(session_id, user_id, prompt)
+
+        history = self.sessions.get_message_history(session_id)
         context = self.get_relevant_context(embedding)
 
         prompt_with_context = context + prompt
@@ -111,6 +125,18 @@ class Chat:
             yield self._process_event(evt, prompt, history)
 
     def _process_event(self, evt: Dict[str, Any], prompt: str, history: PostgresChatMessageHistory) -> str:
+        """
+        Process LLM streaming events and format them for the client.
+        
+        Args:
+            evt (Dict[str, Any]): Event data from the LLM
+            prompt (str): Original user prompt
+            history (PostgresChatMessageHistory): Chat history for the session
+            
+        Returns:
+            str: JSON-formatted event data for the client
+        """
+        
         event_type = evt["event"]
         
         if event_type == "on_chat_model_start":
