@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 
 from app.db.connection import engine
 from app.db.models import Base
-from app.routers import healthcheck, chat
+from app.routers import healthcheck, chat, auth
 
 load_dotenv()
 
@@ -27,3 +27,4 @@ app.add_middleware(
 
 app.include_router(healthcheck.router)
 app.include_router(chat.router)
+app.include_router(auth.router)
