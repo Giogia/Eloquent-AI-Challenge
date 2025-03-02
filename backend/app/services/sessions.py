@@ -3,11 +3,11 @@ import psycopg
 from datetime import datetime
 from langchain_postgres import PostgresChatMessageHistory
 
-from app.db.models import Session
-from app.db.connection import connection_url, get_db
+from app.db.models import Db, Session
+from app.db.connection import connection_url
 
 class Sessions:
-    def create_session(self, session_id, user_id: str, prompt: str) -> str:   
+    def create_session(self, session_id, user_id: str, prompt: str, db: Db) -> str:   
         """
         Create a new chat session in the database.
         
@@ -24,18 +24,17 @@ class Sessions:
             and ensures it's properly closed regardless of success or failure.
         """
 
-        with get_db() as db:
-            new_session = Session(
-                id=session_id, 
-                user_id=user_id, 
-                title=prompt,
-                created_at=datetime.now()
-            )
-            db.add(new_session)
+        new_session = Session(
+            id=session_id, 
+            user_id=user_id, 
+            title=prompt,
+            created_at=datetime.now()
+        )
+        db.add(new_session)
 
-            return new_session.id
+        return new_session.id
 
-    def get_sessions(self, user_id: str) -> list[Session]:
+    def get_sessions(self, user_id: str, db: Db) -> list[Session]:
         """
         Retrieve all sessions belonging to a specific user.
         
@@ -49,25 +48,16 @@ class Sessions:
             Each session object contains id, title, and created_at information.
         """
 
-        with get_db() as db:
-            sessions = (
-                db
-                .query(Session)
-                .filter(Session.user_id == user_id)
-                .order_by(Session.created_at.desc())
-                .all()
-            )
-
-            return [
-                {
-                    'id': session.id, 
-                    'title': session.title, 
-                    'created_at': session.created_at
-                } 
-                for session in sessions
-            ]
+        sessions = (
+            db
+            .query(Session)
+            .filter(Session.user_id == user_id)
+            .order_by(Session.created_at.desc())
+            .all()
+        )
+        return sessions
         
-    def session_exists(self, session_id: str) -> bool:
+    def session_exists(self, session_id: str, db: Db) -> bool:
         """
         Check if a session with the given ID exists in the database.
         
@@ -78,14 +68,13 @@ class Sessions:
             bool: True if the session exists, False otherwise
         """
 
-        with get_db() as db:
-            session = (
-                db
-                .query(Session)
-                .filter(Session.id == session_id)
-                .first()
-            )
-            return session is not None
+        session = (
+            db
+            .query(Session)
+            .filter(Session.id == session_id)
+            .first()
+        )
+        return session is not None
 
     def get_message_history(self, session_id: str) -> PostgresChatMessageHistory:
         """

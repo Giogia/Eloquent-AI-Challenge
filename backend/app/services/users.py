@@ -1,14 +1,10 @@
 from uuid import uuid4
 from datetime import datetime
 
-from app.db.connection import get_db
-from app.db.models import User
+from app.db.models import User, Db
 
 class Users:
-    def __init__(self):
-        self.db = get_db()
-
-    def create_user(self, username: str, email: str, password_hash: str) -> User:
+    def create_user(self, username: str, email: str, password_hash: str, db: Db) -> User:
         """
         Create a new user in the database
         
@@ -21,19 +17,18 @@ class Users:
             User: The newly created user object
         """
         
-        with get_db() as db:
-            new_user = User(
-                id=str(uuid4()),
-                username=username,
-                email=email,
-                password_hash=password_hash,
-                created_at=datetime.now()
-            )
-            db.add(new_user)
+        new_user = User(
+            id=str(uuid4()),
+            username=username,
+            email=email,
+            password_hash=password_hash,
+            created_at=datetime.now()
+        )
+        db.add(new_user)
 
-            return new_user
+        return new_user
     
-    def user_exists(self, email: str) -> bool:
+    def user_exists(self, email: str, db: Db) -> bool:
         """
         Check if a user with the given email already exists
         
@@ -44,16 +39,15 @@ class Users:
             bool: True if user exists, False otherwise
         """
 
-        with get_db() as db:
-            user = (
-                db
-                .query(User)
-                .filter(User.email == email)
-                .first()
-            )
-            return user is not None
+        user = (
+            db
+            .query(User)
+            .filter(User.email == email)
+            .first()
+        )
+        return user is not None
         
-    def get_user_by_id(self, user_id: str) -> User:
+    def get_user_by_id(self, user_id: str, db: Db) -> User:
         """
         Get user by ID
         
@@ -64,11 +58,29 @@ class Users:
             User: The user object if found, None otherwise
         """
 
-        with get_db() as db:
-            user = (
-                db
-                .query(User)
-                .filter(User.id == user_id)
-                .first()
-            )
-            return user
+        user = (
+            db
+            .query(User)
+            .filter(User.id == user_id)
+            .first()
+        )
+        return user
+        
+    def get_user_by_email(self, email: str, db: Db) -> User:
+        """
+        Get user by Email
+        
+        Args:
+            email: Email of the user to retrieve
+            
+        Returns:
+            User: The user object if found, None otherwise
+        """
+
+        user = (
+            db
+            .query(User)
+            .filter(User.email == email)
+            .first()
+        )
+        return user

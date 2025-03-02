@@ -5,7 +5,14 @@ from pydantic import BaseModel
 class Prompt(BaseModel):
     content: str
     sessionId: str
-    userId: str
+
+class Message(BaseModel):
+    id: UUID
+    content: str
+    type: str
+
+class ChatHistory(BaseModel):
+    messages: list[Message]
 
 class Session(BaseModel):
     id: UUID

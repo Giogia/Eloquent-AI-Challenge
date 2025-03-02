@@ -8,6 +8,7 @@ from langchain_anthropic import ChatAnthropic
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_postgres import PostgresChatMessageHistory
 
+from app.db.connection import get_db
 from app.services.sessions import Sessions
 
 # Configuration
@@ -103,8 +104,9 @@ class ChatService:
             str: JSON-formatted chunks of the LLM response
         """
 
-        if not self.sessions.session_exists(session_id):
-            self.sessions.create_session(session_id, user_id, prompt)
+        with get_db() as db:
+            if not self.sessions.session_exists(session_id, db):
+                self.sessions.create_session(session_id, user_id, prompt, db)
 
         history = self.sessions.get_message_history(session_id)
         context = self.get_relevant_context(embedding)

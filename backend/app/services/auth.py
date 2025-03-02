@@ -6,8 +6,7 @@ from typing import Dict, Optional, Tuple
 from passlib.context import CryptContext
 from fastapi import HTTPException
 
-from app.db.connection import get_db
-from app.db.models import User
+from app.db.models import Db
 from app.services.users import Users
 from app.schemas.auth import TokenResponse
 
@@ -34,7 +33,7 @@ class AuthService:
         """
         return pwd_context.hash(password)
 
-    def create_user(self, username: str, email: str, password: str) -> TokenResponse:
+    def create_user(self, username: str, email: str, password: str, db: Db) -> TokenResponse:
         """
         Create a new user with a hashed password and generate JWT tokens.
         
@@ -47,11 +46,11 @@ class AuthService:
             Dict: User details and JWT tokens
         """
         
-        if self.users.user_exists(email):
+        if self.users.user_exists(email, db):
             raise ValueError("User with this email already exists")
         
         password_hash = self.hash_password(password)
-        user = self.users.create_user(username, email, password_hash)
+        user = self.users.create_user(username, email, password_hash, db)
         
         access_token, refresh_token = self._create_tokens(user.id)
         
@@ -63,7 +62,7 @@ class AuthService:
             "refresh_token": refresh_token
         }
     
-    def authenticate_user(self, email: str, password: str) -> TokenResponse:
+    def authenticate_user(self, email: str, password: str, db: Db) -> TokenResponse:
         """
         Authenticate a user and generate JWT tokens.
         
@@ -78,28 +77,22 @@ class AuthService:
             ValueError: If authentication fails
         """
 
-        with get_db() as db:
-            user = (
-                db
-                .query(User)
-                .filter(User.email == email)
-                .first()
-            )
-            
-            if not user or not self.verify_password(password, user.password_hash):
-                raise ValueError("Incorrect email or password")
-            
-            access_token, refresh_token = self._create_tokens(user.id)
-            
-            return {
-                "user_id": user.id,
-                "username": user.username,
-                "email": user.email,
-                "access_token": access_token,
-                "refresh_token": refresh_token
-            }
+        user = self.users.get_user_by_email(email, db)
+
+        if not user or not self.verify_password(password, user.password_hash):
+            raise ValueError("Incorrect email or password")
+        
+        access_token, refresh_token = self._create_tokens(user.id)
+        
+        return {
+            "user_id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "access_token": access_token,
+            "refresh_token": refresh_token
+        }
     
-    def refresh_token(self, refresh_token: str) -> Dict:
+    def refresh_token(self, refresh_token: str, db: Db) -> Dict:
         """
         Generate a new access token using a valid refresh token.
         
@@ -124,7 +117,7 @@ class AuthService:
             if not user_id:
                 raise ValueError("Invalid token")
             
-            user = self.users.get_user_by_id(user_id)
+            user = self.users.get_user_by_id(user_id, db)
             if not user:
                 raise ValueError("User not found")
             

@@ -1,12 +1,13 @@
+from dotenv import load_dotenv
+
+load_dotenv()
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from dotenv import load_dotenv
 
 from app.db.connection import engine
 from app.db.models import Base
 from app.routers import healthcheck, chat, auth
-
-load_dotenv()
 
 app = FastAPI()
 
