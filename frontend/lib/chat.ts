@@ -12,36 +12,47 @@ import { History, Session } from '@/types/Chat'
  * @throws {string} When the network response is not OK
  */
 export async function chat(sessionId:string, prompt: string) {
-  
-  const resp = await fetch('/api/chat/completion', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      sessionId,
-      content: prompt,
-    }),
-    credentials: 'include',
-  })
+  try {
+    const accessToken = localStorage.getItem('access_token')
 
-  if (!resp.ok) throw 'Network response was not OK'
+    const response = await fetch('/api/chat/completion', {
+      method: 'POST',
+      headers: { 
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json' 
+      },
+      body: JSON.stringify({
+        sessionId,
+        content: prompt,
+      })
+    })
 
-  const reader = resp?.body?.getReader()
-  const decoder = new TextDecoder()
-  const aiMessageId = messageId()
-  const accMessage = { content: '' }
-
-  while (true) {
-    const { done, value } = await reader?.read() || {}
-    if (done) break
-
-    const chunk = decoder.decode(value)
-    try {
-      const parsedChunk = JSON.parse(chunk)
-      handleStreamEvent(parsedChunk, aiMessageId, accMessage)
-    } catch (error) {
-      console.error('Error parsing chunk:', error)
-      handleMultiChunk(chunk, aiMessageId, accMessage)
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.detail)
     }
+    
+    const reader = response?.body?.getReader()
+    const decoder = new TextDecoder()
+    const aiMessageId = messageId()
+    const accMessage = { content: '' }
+
+    while (true) {
+      const { done, value } = await reader?.read() || {}
+      if (done) break
+
+      const chunk = decoder.decode(value)
+      try {
+        const parsedChunk = JSON.parse(chunk)
+        handleStreamEvent(parsedChunk, aiMessageId, accMessage)
+      } catch (error) {
+        console.error('Error parsing chunk:', error)
+        handleMultiChunk(chunk, aiMessageId, accMessage)
+      }
+    }
+  }
+  catch (error) {
+    console.error('Error fetching chat:', error)
   }
 }
 
@@ -52,10 +63,32 @@ export async function chat(sessionId:string, prompt: string) {
  * @throws {Error} When the fetch request fails
  */
 export async function getHistory(sessionId: string): Promise<History> {
-  const resp = await fetch(`/api/chat/history/${sessionId}`)
-  const history = await resp.json()
+  try {
+    const accessToken = localStorage.getItem('access_token')
 
-  return history
+    const response = await fetch(`/api/chat/history/${sessionId}`, {
+      method: 'GET',
+      headers: { 
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json' 
+      },
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.detail)
+    }
+
+    const history = await response.json()
+
+    return history
+  } 
+  catch (error) {
+    console.error('Error fetching session history:', error)
+    return { 
+      messages: [] 
+    }
+  }
 }
 
 /**
@@ -64,8 +97,28 @@ export async function getHistory(sessionId: string): Promise<History> {
  * @throws {Error} When the fetch request fails
  */
 export async function getSessions(): Promise<Session[]> {
-  const resp = await fetch('/api/chat/sessions')
-  const sessions = await resp.json()
-  
-  return sessions
+  try {
+    const accessToken = localStorage.getItem('access_token')
+    
+    const response = await fetch('/api/chat/sessions', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      }
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.detail)
+    }
+
+    const sessions = await response.json()
+    
+    return sessions
+  } 
+  catch (error) {
+    console.error('Error fetching sessions:', error)
+    return []
+  }
 }
