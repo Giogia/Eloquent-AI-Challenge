@@ -47,13 +47,10 @@ export function Sessions() {
   }
 
   return (
-    <div className='flex flex-col overflow-y-auto bg-gray-200 h-full w-full p-2 mb-4'>
-      <div className='flex w-full justify-end p-4'>
+    <div className='flex flex-col gap-1 overflow-y-auto bg-gray-200 h-full w-full p-2 mb-4'>
+      <div className='flex w-full p-4'>
         <SquarePen 
-          className={cn(
-            'text-gray-400 hover:text-gray-800 cursor-pointer transition-colors',
-            !searchParams.get('sessionId') && 'invisible pointer-events-none'
-          )}
+          className='text-gray-400 hover:text-gray-800 cursor-pointer transition-colors'
           onClick={handleNewSession} 
         />
       </div>
