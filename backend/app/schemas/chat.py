@@ -1,11 +1,13 @@
+from uuid import UUID
+from datetime import datetime
 from pydantic import BaseModel
 
-class ChatSessionPrompt(BaseModel):
+class Prompt(BaseModel):
     content: str
     sessionId: str
     userId: str
 
 class Session(BaseModel):
-    id: str
+    id: UUID
     title: str
-    createdAt: str
+    created_at: datetime

@@ -5,7 +5,7 @@ from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 
 from app.services import Chat
-from app.schemas import ChatSessionPrompt
+from app.schemas import Prompt, Session
 
 load_dotenv()
 
@@ -14,7 +14,7 @@ router = APIRouter(prefix="/chat", tags=["chat"])
 chat_service = Chat()
 
 @router.post("/completion")
-async def chat_completion(prompt: ChatSessionPrompt) -> StreamingResponse:
+async def chat_completion(prompt: Prompt) -> StreamingResponse:
 
     embedding = chat_service.generate_embedding(prompt.content)
 
@@ -28,7 +28,7 @@ async def chat_completion(prompt: ChatSessionPrompt) -> StreamingResponse:
         media_type='text/event-stream'
     )
 
-@router.get("/sessions/{user_id}")
+@router.get("/sessions/{user_id}", response_model=list[Session])
 async def get_sessions(user_id: str):
     
     sessions = chat_service.sessions.get_sessions(user_id)
