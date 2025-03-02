@@ -1,6 +1,22 @@
+'use client'
+
 // next
-import { redirect } from 'next/navigation'
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 
 export default function Page() {
-  return redirect('/chat')
+  const router = useRouter()
+
+  useEffect(() => {
+    const accessToken = localStorage.getItem('access_token')
+    const refreshToken = localStorage.getItem('refresh_token')
+
+    if (!accessToken && !refreshToken) {
+      router.push('/login')
+    } else {
+      router.push('/chat')
+    }
+  }, [router])
+
+  return null
 }
