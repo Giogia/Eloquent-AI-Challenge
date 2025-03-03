@@ -5,6 +5,9 @@ import { Geist, Geist_Mono } from 'next/font/google'
 // lib
 import { cn } from '@/lib/utils'
 
+// providers
+import { AuthProvider } from '@/providers/auth'
+
 // css
 import './globals.css'
 
@@ -33,7 +36,9 @@ export default function RootLayout({
       <body
         className={cn(geistSans.variable,geistMono.variable,'antialiased')}
       >
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   )

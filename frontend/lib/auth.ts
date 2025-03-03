@@ -1,18 +1,19 @@
 
 export async function signup(username: string, email: string, password: string) {
   try {
-    const response = await fetch('/api/auth/signup', {
-      method: 'POST',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        username,
-        email,
-        password
+    const response = await fetch('/api/auth/signup', 
+      {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          username,
+          email,
+          password
+        })
       })
-    })
   
     if (!response.ok) {
       const error = await response.json()
@@ -36,11 +37,13 @@ export async function login(email: string, password: string) {
     formData.append('username', email)
     formData.append('password', password)
   
-    const response = await fetch('/api/auth/token', {
-      method: 'POST',
-      credentials: 'include',
-      body: formData,
-    })
+    const response = await fetch('/api/auth/token', 
+      {
+        method: 'POST',
+        credentials: 'include',
+        body: formData,
+      }
+    )
   
     if (!response.ok) {
       const error = await response.json()
@@ -59,13 +62,12 @@ export async function login(email: string, password: string) {
 
 export async function validateToken() {
   try {
-    const response = await fetch('/api/auth/validate', {
-      method: 'POST',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-    })
+    const response = await fetch('/api/auth/validate', 
+      {
+        method: 'POST',
+        credentials: 'include',
+      }
+    )
   
     if (!response.ok) {
       const error = await response.json()
@@ -84,13 +86,12 @@ export async function validateToken() {
 
 export async function refreshAccessToken() {
   try {
-    const response = await fetch('/api/auth/refresh', {
-      method: 'POST',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-    })
+    const response = await fetch('/api/auth/refresh', 
+      {
+        method: 'POST',
+        credentials: 'include',
+      }
+    )
   
     if (!response.ok) {
       const error = await response.json()
