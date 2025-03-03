@@ -2,7 +2,7 @@
 import { useChatStore } from '@/stores/chat'
 
 // types
-import { Type } from '@/types/Chat'
+import { Type } from '@/types/chat'
 
 /**
  * Handles stream events for chat messages
@@ -54,7 +54,7 @@ export function handleMultiChunk(
   let multiChunkAcc = ''
   let idx = 0
   
-  while (0 < chunk.length) {
+  while (idx < chunk.length) {
     if (chunk[idx] === '}') {
       try {
         multiChunkAcc += chunk[idx]

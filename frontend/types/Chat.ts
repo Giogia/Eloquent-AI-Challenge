@@ -39,3 +39,15 @@ export interface Session {
   /** Title or name of the chat session */
   title: string;
 }
+
+/**
+ * Represents user information.
+ */
+export interface User {
+  /** Unique identifier for the user */
+  id: string;
+  /** Email address of the user */
+  email: string;
+  /** Full name of the user */
+  username: string;
+}

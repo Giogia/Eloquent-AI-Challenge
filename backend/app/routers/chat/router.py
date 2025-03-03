@@ -1,11 +1,11 @@
 from uuid import uuid4
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import StreamingResponse
 
 from app.db.connection import get_db
 from app.services import ChatService
-from app.schemas import Prompt, Message, ChatHistory, Session
+from app.schemas import Prompt, Message, ChatHistory, Session, User
 from app.routers.auth import auth_service
 
 chat_service = ChatService()
@@ -60,6 +60,9 @@ async def get_chat_history(session_id: str, request: Request):
     
     history = chat_service.sessions.get_message_history(session_id)
 
+    if not history:
+        raise HTTPException(status_code=404, detail="Session history not found")
+
     return ChatHistory(
         messages = [
             Message(
@@ -69,3 +72,22 @@ async def get_chat_history(session_id: str, request: Request):
             ) for message in history.messages
         ]
     )
+
+@router.get("/user", response_model=User)
+async def get_user(request: Request):
+
+    access_token = request.cookies.get("access_token")
+
+    user_id = auth_service.validate_token(access_token)
+
+    with get_db() as db:
+        user = auth_service.users.get_user_by_id(user_id, db)
+        
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        return User(
+            id=user.id,
+            email=user.email,
+            username=user.username
+        )

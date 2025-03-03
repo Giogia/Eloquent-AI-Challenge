@@ -18,3 +18,8 @@ class Session(BaseModel):
     id: UUID
     title: str
     created_at: datetime
+
+class User(BaseModel):
+    id: UUID
+    email: str
+    username: str

@@ -4,7 +4,7 @@ import { messageId } from '@/lib/utils'
 import { handleMultiChunk, handleStreamEvent } from '@/lib/stream'
 
 // types
-import { History, Session } from '@/types/Chat'
+import { History, Session, User } from '@/types/chat'
 
 /**
  * Initiates a chat conversation with the AI using the provided prompt
@@ -13,19 +13,19 @@ import { History, Session } from '@/types/Chat'
  */
 export async function chat(sessionId:string, prompt: string) {
   try {
-    const accessToken = localStorage.getItem('access_token')
-
-    const response = await fetch('/api/chat/completion', {
-      method: 'POST',
-      headers: { 
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json' 
-      },
-      body: JSON.stringify({
-        sessionId,
-        content: prompt,
-      })
-    })
+    const response = await fetch('/api/chat/completion', 
+      {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 
+          'Content-Type': 'application/json' 
+        },
+        body: JSON.stringify({
+          sessionId,
+          content: prompt,
+        })
+      }
+    )
 
     if (!response.ok) {
       const error = await response.json()
@@ -37,18 +37,22 @@ export async function chat(sessionId:string, prompt: string) {
     const aiMessageId = messageId()
     const accMessage = { content: '' }
 
-    while (true) {
-      const { done, value } = await reader?.read() || {}
-      if (done) break
+    try {
+      while (true) {
+        const { done, value } = await reader?.read() || {}
+        if (done) break
 
-      const chunk = decoder.decode(value)
-      try {
-        const parsedChunk = JSON.parse(chunk)
-        handleStreamEvent(parsedChunk, aiMessageId, accMessage)
-      } catch (error) {
-        console.error('Error parsing chunk:', error)
-        handleMultiChunk(chunk, aiMessageId, accMessage)
+        const chunk = decoder.decode(value)
+        try {
+          const parsedChunk = JSON.parse(chunk)
+          handleStreamEvent(parsedChunk, aiMessageId, accMessage)
+        } catch (error) {
+          console.error('Error parsing chunk:', error)
+          handleMultiChunk(chunk, aiMessageId, accMessage)
+        }
       }
+    } finally {
+      reader?.releaseLock()
     }
   }
   catch (error) {
@@ -64,15 +68,15 @@ export async function chat(sessionId:string, prompt: string) {
  */
 export async function getHistory(sessionId: string): Promise<History> {
   try {
-    const accessToken = localStorage.getItem('access_token')
-
-    const response = await fetch(`/api/chat/history/${sessionId}`, {
-      method: 'GET',
-      headers: { 
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json' 
-      },
-    })
+    const response = await fetch(`/api/chat/history/${sessionId}`, 
+      {
+        method: 'GET',
+        credentials: 'include',
+        headers: { 
+          'Content-Type': 'application/json' 
+        },
+      }
+    )
 
     if (!response.ok) {
       const error = await response.json()
@@ -98,15 +102,15 @@ export async function getHistory(sessionId: string): Promise<History> {
  */
 export async function getSessions(): Promise<Session[]> {
   try {
-    const accessToken = localStorage.getItem('access_token')
-    
-    const response = await fetch('/api/chat/sessions', {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json'
+    const response = await fetch('/api/chat/sessions', 
+      {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
       }
-    })
+    )
 
     if (!response.ok) {
       const error = await response.json()
@@ -120,5 +124,37 @@ export async function getSessions(): Promise<Session[]> {
   catch (error) {
     console.error('Error fetching sessions:', error)
     return []
+  }
+}
+
+/**
+ * Retrieves user information
+ * @returns Promise containing an array of session IDs
+ * @throws {Error} When the fetch request fails
+ */
+export async function getUser(): Promise<User | null> {
+  try {
+    const response = await fetch('/api/chat/user', 
+      {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    )
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.detail)
+    }
+
+    const user = await response.json()
+    
+    return user
+  } 
+  catch (error) {
+    console.error('Error fetching user:', error)
+    return null
   }
 }
