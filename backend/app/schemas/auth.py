@@ -9,6 +9,9 @@ class UserLogin(BaseModel):
     email: EmailStr
     password: str
 
+class UserValidate(BaseModel):
+    user_id: str
+
 class TokenResponse(BaseModel):
     user_id: str
     username: str
@@ -18,3 +21,7 @@ class TokenResponse(BaseModel):
 
 class RefreshTokenRequest(BaseModel):
     refresh_token: str
+
+class RefreshTokenResponse(BaseModel):
+    user_id: str
+    access_token: str

@@ -1,21 +1,23 @@
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Request
 from fastapi.responses import StreamingResponse
 
 from app.db.connection import get_db
 from app.services import ChatService
 from app.schemas import Prompt, Message, ChatHistory, Session
-from app.routers.auth import auth_service, oauth2_scheme
+from app.routers.auth import auth_service
 
 chat_service = ChatService()
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
 @router.post("/completion")
-async def chat_completion(prompt: Prompt, token: str = Depends(oauth2_scheme)):
+async def chat_completion(prompt: Prompt, request: Request):
 
-    user_id = auth_service.validate_token(token)
+    access_token = request.cookies.get("access_token")
+
+    user_id = auth_service.validate_token(access_token)
 
     embedding = chat_service.generate_embedding(prompt.content)
 
@@ -30,9 +32,11 @@ async def chat_completion(prompt: Prompt, token: str = Depends(oauth2_scheme)):
     )
 
 @router.get("/sessions", response_model=list[Session])
-async def get_sessions(token: str = Depends(oauth2_scheme)):
+async def get_sessions(request: Request):
 
-    user_id = auth_service.validate_token(token)
+    access_token = request.cookies.get("access_token")
+
+    user_id = auth_service.validate_token(access_token)
     
     with get_db() as db:
         sessions = chat_service.sessions.get_sessions(user_id, db)
@@ -48,9 +52,11 @@ async def get_sessions(token: str = Depends(oauth2_scheme)):
 
 
 @router.get("/history/{session_id}", response_model=ChatHistory)
-async def get_chat_history(session_id: str, token: str = Depends(oauth2_scheme)):
+async def get_chat_history(session_id: str, request: Request):
 
-    auth_service.validate_token(token)
+    access_token = request.cookies.get("access_token")
+
+    auth_service.validate_token(access_token)
     
     history = chat_service.sessions.get_message_history(session_id)
 

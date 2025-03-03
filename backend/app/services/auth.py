@@ -1,14 +1,15 @@
 import os
 import jwt
 
+from uuid import UUID
 from datetime import datetime, timedelta, timezone
-from typing import Dict, Optional, Tuple
+from typing import Optional, Tuple
 from passlib.context import CryptContext
 from fastapi import HTTPException
 
 from app.db.models import Db
 from app.services.users import Users
-from app.schemas.auth import TokenResponse
+from app.schemas.auth import TokenResponse, RefreshTokenResponse
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -54,13 +55,13 @@ class AuthService:
         
         access_token, refresh_token = self._create_tokens(user.id)
         
-        return {
-            "user_id": user.id,
-            "username": user.username,
-            "email": user.email,
-            "access_token": access_token,
-            "refresh_token": refresh_token
-        }
+        return TokenResponse(
+            user_id=user.id,
+            username=user.username,
+            email=user.email,
+            access_token=access_token,
+            refresh_token=refresh_token
+        )
     
     def authenticate_user(self, email: str, password: str, db: Db) -> TokenResponse:
         """
@@ -84,15 +85,15 @@ class AuthService:
         
         access_token, refresh_token = self._create_tokens(user.id)
         
-        return {
-            "user_id": user.id,
-            "username": user.username,
-            "email": user.email,
-            "access_token": access_token,
-            "refresh_token": refresh_token
-        }
+        return TokenResponse(
+            user_id=str(user.id),
+            username=user.username,
+            email=user.email,
+            access_token=access_token,
+            refresh_token=refresh_token
+        )
     
-    def refresh_token(self, refresh_token: str, db: Db) -> Dict:
+    def refresh_token(self, refresh_token: str, db: Db) -> RefreshTokenResponse:
         """
         Generate a new access token using a valid refresh token.
         
@@ -123,9 +124,10 @@ class AuthService:
             
             new_access_token, _ = self._create_tokens(user_id, refresh=False)
             
-            return {
-                "access_token": new_access_token
-            }
+            return RefreshTokenResponse(
+                user_id=user_id,
+                access_token=new_access_token
+            )
         
         except jwt.PyJWTError:
             raise ValueError("Invalid or expired refresh token")
@@ -157,7 +159,7 @@ class AuthService:
         except jwt.PyJWTError:
             raise HTTPException(status_code=403, detail="Unauthorized access")
     
-    def _create_tokens(self, user_id: str, refresh: bool = True) -> Tuple[str, Optional[str]]:
+    def _create_tokens(self, user_id: UUID, refresh: bool = True) -> Tuple[str, Optional[str]]:
         """
         Create access and optionally refresh tokens for a user.
         
@@ -171,7 +173,7 @@ class AuthService:
 
         access_token = jwt.encode(
             {
-                "sub": user_id,
+                "sub": str(user_id),
                 "exp": datetime.now(timezone.utc) + timedelta(minutes=self.access_token_expire_minutes),
                 "type": "access"
             }, 
@@ -184,7 +186,7 @@ class AuthService:
         if refresh:
             refresh_token = jwt.encode(
                 {
-                    "sub": user_id,
+                    "sub": str(user_id),
                     "exp": datetime.now(timezone.utc) + timedelta(days=self.refresh_token_expire_days),
                     "type": "refresh"
                 }, 
