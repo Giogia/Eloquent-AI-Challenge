@@ -42,7 +42,7 @@ export default function LoginPage() {
   }
 
   const handleRedirect = () => {
-    router.push('/chat')
+    router.push('/')
   }
 
   const handleLogin = async () => {

@@ -3,6 +3,7 @@ export async function signup(username: string, email: string, password: string) 
   try {
     const response = await fetch('/api/auth/signup', {
       method: 'POST',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json'
       },
@@ -18,12 +19,9 @@ export async function signup(username: string, email: string, password: string) 
       throw new Error(error.detail)
     }
   
-    const tokens = await response.json()
+    const { user_id } = await response.json()
     
-    localStorage.setItem('access_token', tokens.access_token)
-    localStorage.setItem('refresh_token', tokens.refresh_token)
-
-    return tokens
+    return user_id
   } 
   catch (error) {
     console.error('Error signing up:', error)
@@ -40,6 +38,7 @@ export async function login(email: string, password: string) {
   
     const response = await fetch('/api/auth/token', {
       method: 'POST',
+      credentials: 'include',
       body: formData,
     })
   
@@ -48,12 +47,9 @@ export async function login(email: string, password: string) {
       throw new Error(error.detail || 'Login failed')
     }
   
-    const tokens = await response.json()
+    const { user_id } = await response.json()
 
-    localStorage.setItem('access_token', tokens.access_token)
-    localStorage.setItem('refresh_token', tokens.refresh_token)
-
-    return tokens
+    return user_id
   }
   catch (error) {
     console.error('Error logging in:', error)
@@ -61,18 +57,14 @@ export async function login(email: string, password: string) {
   }
 }
 
-export async function refreshAccessToken() {
+export async function validateToken() {
   try {
-    const refreshToken = localStorage.getItem('refresh_token')
-  
-    const response = await fetch('/api/auth/refresh', {
+    const response = await fetch('/api/auth/validate', {
       method: 'POST',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        refresh_token: refreshToken
-      })
     })
   
     if (!response.ok) {
@@ -80,18 +72,37 @@ export async function refreshAccessToken() {
       throw new Error(error.detail)
     }
   
-    const tokens = await response.json()
-    localStorage.setItem('access_token', tokens.access_token)
+    const { user_id } = await response.json()
 
-    return tokens.access_token
+    return user_id
+  }
+  catch (error) {
+    console.error('Error validating tokens:', error)
+    return null
+  }
+}
+
+export async function refreshAccessToken() {
+  try {
+    const response = await fetch('/api/auth/refresh', {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+    })
+  
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.detail)
+    }
+  
+    const { user_id } = await response.json()
+
+    return user_id
   }
   catch (error) {
     console.error('Error refreshing token:', error)
     return null
   }
-}
-
-export function logout() {
-  localStorage.removeItem('access_token')
-  localStorage.removeItem('refresh_token')
 }

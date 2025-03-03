@@ -1,22 +1,47 @@
 'use client'
 
+// react
+import { useEffect, useState } from 'react'
+
 // next
-import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { refreshAccessToken, validateToken } from '@/lib/auth'
 
 export default function Page() {
   const router = useRouter()
 
-  useEffect(() => {
-    const accessToken = localStorage.getItem('access_token')
-    const refreshToken = localStorage.getItem('refresh_token')
+  const [isLoading, setIsLoading] = useState(true)
 
-    if (!accessToken && !refreshToken) {
-      router.push('/login')
-    } else {
-      router.push('/chat')
+  useEffect(() => {
+    const validateAuth = async () => {
+      try {
+        const response = await validateToken()
+
+        if (response) {
+          router.push('/chat')
+          return
+        }
+
+        const refreshResponse = await refreshAccessToken()
+
+        if (refreshResponse) {
+          router.push('/chat')
+        } else {
+          router.push('/login')
+        }
+      } catch (error) {
+        console.error('Authentication error:', error)
+        router.push('/login')
+      } finally {
+        setIsLoading(false)
+      }
     }
+
+    validateAuth()
   }, [router])
 
-  return null
+  return isLoading ? 
+    <div className='h-screen w-full flex justify-center items-center'>
+      Loading...
+    </div> : null
 }
