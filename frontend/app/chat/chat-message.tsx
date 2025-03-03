@@ -8,7 +8,7 @@ import ReactMarkdown from 'react-markdown'
 import { cn } from '@/lib/utils'
 
 // types
-import { Type, Message } from '@/types/Chat'
+import { Type, Message } from '@/types/chat'
 
 export function ChatMessage ({ message }: { message: Message }) {
   return (message.type === Type.AI || message.type === Type.Human) ?

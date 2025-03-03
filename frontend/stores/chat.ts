@@ -7,7 +7,7 @@ import { chat } from '@/lib/chat'
 import { messageId } from '@/lib/utils'
 
 // types
-import { Type, Message } from '@/types/Chat'
+import { Type, Message } from '@/types/chat'
 
 /**
  * Represents the state and actions for the chat functionality

@@ -17,9 +17,9 @@ import { cn } from '@/lib/utils'
 import { useChatStore } from '@/stores/chat'
 
 // types
-import { Session } from '@/types/Chat'
+import { Session } from '@/types/chat'
 
-export function Sessions() {
+export function ChatSessions() {
   
   const router = useRouter()
   const searchParams = useSearchParams()
