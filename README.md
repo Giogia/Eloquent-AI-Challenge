@@ -51,6 +51,7 @@ The application supports authenticated users with persistent chat history, and i
 - Persisted chat history for both anonymous and authenticated users
 - Clean, intuitive chat interface inspired by modern AI assistants
 - Comprehensive knowledge base covering fintech topics:
+
   - Account & Registration
   - Payments & Transactions
   - Security & Fraud Prevention
@@ -176,7 +177,7 @@ For more details on the implementation approach, see `docs/implementation-detail
 
 <br/>
 
-## AWS Deployment
+## Deployment
 
 <div align="left">
   <b>Tech Stack:</b>
@@ -186,6 +187,9 @@ For more details on the implementation approach, see `docs/implementation-detail
    
   <img src="https://cdn.worldvectorlogo.com/logos/docker-4.svg" height="24" align="top">
   <a href="https://www.docker.com/">Docker</a>
+
+  <img src="https://cdn.worldvectorlogo.com/logos/vercel.svg" height="24" align="top">
+  <a href="https://vercel.com/">Vercel</a>
 </div>
 
 <br/>
@@ -193,11 +197,12 @@ For more details on the implementation approach, see `docs/implementation-detail
 The application is designed to be deployed on AWS with the following components:
 
 - Frontend: Hosted on Vercel
-- Backend: Deployed as containers on ECS or EKS
-- Authentication: Amazon Cognito
-- Database: DynamoDB for chat history storage
 - API Gateway: Managing API requests
-- Lambda: Supporting serverless components
+- Application Load Balancer: For routing and scaling HTTP traffic
+- Backend: Deployed as containers on AWS Fargate ECS
+- Database: AWS RDS (or Aurora) for relational data storage
+- ElastiCache: For caching and session management
+- Authentication: AWS Cognito for user authentication and authorization
 - CI/CD Pipeline: GitHub Actions
 
 Detailed deployment architecture documentation can be found in the `docs/aws-architecture.md` file.
