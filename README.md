@@ -166,9 +166,9 @@ Then open http://localhost:8000/docs to view the API documentation.
 
 <br/>
 
-### Setting up PostgreSQL locally
+## Setting up PostgreSQL locally
 
-#### Install PostgreSQL
+### Install PostgreSQL
 
 For Ubuntu/Debian:
 ```bash
@@ -185,7 +185,7 @@ brew services start postgresql
 For Windows:
 Download and install from [PostgreSQL official website](https://www.postgresql.org/download/windows/)
 
-#### Create a database
+### Create a database
 
 After installing PostgreSQL:
 
