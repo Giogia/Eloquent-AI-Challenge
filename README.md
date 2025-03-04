@@ -25,11 +25,11 @@
 </div>
 
 <br/>
-<br/> 
+<!--<br/>--> 
 
 <!-- Dev Environments -->
 
-<div align="center">
+<!--<div align="center">
  <a href="https://docs.docker.com/desktop/dev-environments/">
   <img src="https://github.com/Giogia/video-manager/assets/9254840/564bd950-a2a9-45a1-8fcf-2b07f92eb4da" height="48">
  </a>
@@ -37,7 +37,7 @@
 
 <div align="center">
   <a href="https://open.docker.com/dashboard/dev-envs?url=https://github.com/Giogia/Eloquent-AI-Challenge.git">Open in Docker Dev Environments</a> 
-</div>
+</div>-->
 
 ## Overview
 
