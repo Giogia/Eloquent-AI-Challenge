@@ -1,17 +1,18 @@
 
 // lib
 import { messageId } from '@/lib/utils'
-import { handleMultiChunk, handleStreamEvent } from '@/lib/stream'
+import { processStreamRecursively } from '@/lib/stream'
 
 // types
 import { History, Session, User } from '@/types/chat'
 
 /**
  * Initiates a chat conversation with the AI using the provided prompt
+ * @param sessionId The session ID for the conversation
  * @param prompt The user's input message to send to the AI
  * @throws {string} When the network response is not OK
  */
-export async function chat(sessionId:string, prompt: string) {
+export async function chat(sessionId: string, prompt: string) {
   try {
     const response = await fetch('/api/chat/completion', 
       {
@@ -38,19 +39,7 @@ export async function chat(sessionId:string, prompt: string) {
     const accMessage = { content: '' }
 
     try {
-      while (true) {
-        const { done, value } = await reader?.read() || {}
-        if (done) break
-
-        const chunk = decoder.decode(value)
-        try {
-          const parsedChunk = JSON.parse(chunk)
-          handleStreamEvent(parsedChunk, aiMessageId, accMessage)
-        } catch (error) {
-          console.error('Error parsing chunk:', error)
-          handleMultiChunk(chunk, aiMessageId, accMessage)
-        }
-      }
+      await processStreamRecursively(reader, decoder, aiMessageId, accMessage, '')
     } finally {
       reader?.releaseLock()
     }

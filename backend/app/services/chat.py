@@ -143,14 +143,12 @@ class ChatService:
         
         if event_type == "on_chat_model_start":
             history.add_user_message(prompt)
-            return json.dumps({"event": event_type}, separators=(',', ':'))
-            
+            return f"data: {json.dumps({'event': event_type})}\n\n"
+        
         elif event_type == "on_chat_model_stream":
-            return json.dumps({
-                "event": event_type,
-                "data": evt["data"]['chunk'].content
-            }, separators=(',', ':'))
-            
+            await asyncio.sleep(0.01)  # Small delay to ensure streaming behavior
+            return f"data: {json.dumps({'event': event_type, 'data': evt['data']['chunk'].content})}\n\n"
+        
         elif event_type == "on_chat_model_end":
             history.add_ai_message(evt['data']['output'].content)
-            return json.dumps({"event": event_type}, separators=(',', ':'))
+            return f"data: {json.dumps({'event': event_type})}\n\n"
