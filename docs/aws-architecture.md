@@ -72,7 +72,6 @@ This document outlines the AWS deployment architecture for the Eloquent AI RAG C
   - Vector database for RAG implementation
   - Stores embeddings of knowledge base documents
   - Fast similarity search for context retrieval
-  - Connected via secure VPC endpoints
 
 ### Authentication
 
@@ -110,7 +109,7 @@ This document outlines the AWS deployment architecture for the Eloquent AI RAG C
 
 ### Availability
 
-- Multi-AZ deployment for all services
+- Multi availability zones deployment for all services
 - Aurora multi-region read replicas (optional)
 - Health checks and automated recovery
 
