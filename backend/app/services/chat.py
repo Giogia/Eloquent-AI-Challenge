@@ -146,7 +146,6 @@ class ChatService:
             return f"data: {json.dumps({'event': event_type})}\n\n"
         
         elif event_type == "on_chat_model_stream":
-            await asyncio.sleep(0.01)  # Small delay to ensure streaming behavior
             return f"data: {json.dumps({'event': event_type, 'data': evt['data']['chunk'].content})}\n\n"
         
         elif event_type == "on_chat_model_end":
