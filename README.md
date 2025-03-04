@@ -111,15 +111,18 @@ Then open http://localhost:3000 to see your app.
 
 <div align="left">
   <b>Tech Stack:</b>
-   
+  
   <img src="https://cdn.worldvectorlogo.com/logos/python-5.svg" height="24" align="top"> 
   <a href="https://www.python.org/">Python</a>
-   
+  
   <img src="https://cdn.worldvectorlogo.com/logos/fastapi-1.svg" height="24" align="top">
   <a href="https://fastapi.tiangolo.com/">FastAPI</a>
 
   <img src="https://github.com/user-attachments/assets/cdbf013b-787f-495e-827c-299deb4bc317" height="24" align="top"> 
   <a href="https://www.pinecone.io/">Pinecone</a>
+
+  <img src="https://cdn.worldvectorlogo.com/logos/postgresql.svg" height="24" align="top"> 
+  <a href="https://www.postgresql.org/">PostgreSQL</a>
 </div>
  
 <br/>
@@ -160,6 +163,43 @@ Start the server:
 uvicorn app.main:app --reload
 ```
 Then open http://localhost:8000/docs to view the API documentation.
+
+<br/>
+
+### Setting up PostgreSQL locally
+
+#### Install PostgreSQL
+
+For Ubuntu/Debian:
+```bash
+sudo apt update
+sudo apt install postgresql postgresql-contrib
+```
+
+For macOS (using Homebrew):
+```bash
+brew install postgresql
+brew services start postgresql
+```
+
+For Windows:
+Download and install from [PostgreSQL official website](https://www.postgresql.org/download/windows/)
+
+#### Create a database
+
+After installing PostgreSQL:
+
+1. Create a database user:
+```bash
+createuser -P eloquent_user
+```
+
+2. Create a database:
+```bash
+createdb -O eloquent_user eloquent_ai_db
+```
+
+4. Update your database connection string in the backend environment variables to use these credentials.
 
 <br/>
 
